@@ -109,6 +109,15 @@ class MlProject(QWidget):
         
         self.updateTargetVariableStatus()
         
+    def get_column_data_from_csv(self, column_name):
+        if column_name in self.header:
+            column_index = self.header.index(column_name)
+            # Extract column data from self.csv_data
+            column_data = [row[column_index] for row in self.csv_data]
+            return column_data
+        else:
+            raise ValueError(f"Column name '{column_name}' not found in CSV header.")
+        
     def updateTargetVariableStatus(self):
         if self.csv_data:
             try:
@@ -172,22 +181,6 @@ class MlProject(QWidget):
 
         else:
             print("No csv data found")
-
-        print(self.columns[self.targetVariable].isDiscrete())
-        print("Target:", self.targetVariable)
-        
-        # print(self.csv_data)
-        print(self.get_column_data_from_csv("Age"))
-        
-    def get_column_data_from_csv(self, column_name):
-        # print(self.header)
-        if column_name in self.header:
-            column_index = self.header.index(column_name)
-            # Extract column data from self.csv_data
-            column_data = [row[column_index] for row in self.csv_data]
-            return column_data
-        else:
-            raise ValueError(f"Column name '{column_name}' not found in CSV header.")
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
