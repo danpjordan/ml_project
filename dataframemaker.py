@@ -1,5 +1,4 @@
 import pandas as pd
-
 DISCRETE_THRESHOLD = 5
 
 class Column:
@@ -75,7 +74,7 @@ def convertStringToInt(df, columns):
         df.loc[i, col] = columns[col].stringToNum(row)
 
 def main():
-  data_name = "data/Employee-Attrition.csv"
+  data_name = "data/Employee-Attrition-test.csv"
   output_name = "output/out.csv"
 
   imported_df = pd.read_csv(data_name)
