@@ -5,6 +5,44 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QCo
 import pandas as pd
 import dfhelper
 
+class Column:
+  def __init__(self, is_String, is_Discrete):
+    self.is_String = is_String
+    self.is_Discrete = is_Discrete
+    self.string_to_num = {}
+    self.num_to_string = {}
+  
+  def isString(self):
+    return self.is_String
+  
+  def isDiscrete(self):
+    return self.is_Discrete
+
+  def numToString(self, num):
+    return self.num_to_string[num]
+
+  def stringToNum(self, string):
+    return self.string_to_num[string]
+  
+  # adds a string-num and num-string conversion to the column
+  def addStringNum(self, string, num):
+    self.string_to_num[string] = num
+    self.num_to_string[num] = string
+    
+  def checkString(self, string):
+    return string in self.string_to_num
+  
+  def printDict(self):
+    print("Dictionary:")
+    for key in self.num_to_string:
+      print(key, self.num_to_string[key])
+    
+  def printColumn(self):
+    print("String:", self.isString())
+    print("Discrete:", self.isDiscrete())
+    if self.isString():
+      self.printDict()
+
 class MlProject(QWidget):
     def __init__(self):
         super().__init__()
@@ -145,6 +183,7 @@ class MlProject(QWidget):
                 checkbox.setChecked(False)
 
     def submit(self):
+        
         self.targetVariable = self.selectColumnDropdown.currentText()
         if not self.targetVariable:
             QMessageBox.warning(self, "No Selection", "Please select a special column from the dropdown list.")
@@ -164,16 +203,12 @@ class MlProject(QWidget):
             self.df = pd.DataFrame(self.csv_data, columns=self.header)
             self.selected_df = self.df[selected_features].copy()  # Use .copy() to avoid chained assignment
             
-            # Convert all columns to numeric if possible
             for col in self.selected_df.columns:
-                try:
-                    self.selected_df[col] = pd.to_numeric(self.selected_df[col], errors='coerce')
-                except ValueError:
-                    pass
+                self.selected_df[col] = pd.to_numeric(self.selected_df[col], errors='ignore')
+
             
             self.columns = dfhelper.createColumnDict(self.selected_df)
             dfhelper.convertStringToInt(self.selected_df, self.columns)
-        
             dfhelper.printColumns(self.columns)
 
             # output the selected data as a csv
