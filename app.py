@@ -1,5 +1,4 @@
 import sys
-import csv
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QComboBox, QFileDialog, QLabel, QMessageBox, QCheckBox, QScrollArea
 import pandas as pd
@@ -148,11 +147,14 @@ class MlProject(QWidget):
         # selects only the selected_features from the csv_data and creates a new dataframe
         if not self.df.empty:
             self.selected_df = self.df[selected_features].copy()
-            self.selected_df_unmodifed = self.df[selected_features].copy()
             
             for col in self.selected_df.columns:
-                self.selected_df[col] = pd.to_numeric(self.selected_df[col], errors='ignore')
-                self.selected_df_unmodifed[col] = pd.to_numeric(self.selected_df[col], errors='ignore')
+              try:
+                self.selected_df[col] = pd.to_numeric(self.selected_df[col])
+              except ValueError:
+                pass
+            
+            self.selected_df_unmodifed = self.selected_df.copy()
             
             self.columns = dfhelper.createColumnDict(self.selected_df)
             dfhelper.convertStringToInt(self.selected_df, self.columns)

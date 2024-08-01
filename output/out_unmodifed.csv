@@ -1,0 +1,49 @@
+Age,Attrition,BusinessTravel,DailyRate,Department
+41,Yes,Travel_Rarely,1102,Sales
+49,No,Travel_Frequently,279,Research & Development
+37,Yes,Travel_Rarely,1373,Research & Development
+33,No,Travel_Frequently,1392,Research & Development
+27,No,Travel_Rarely,591,Research & Development
+32,No,Travel_Frequently,1005,Research & Development
+59,No,Travel_Rarely,1324,Research & Development
+30,No,Travel_Rarely,1358,Research & Development
+38,No,Travel_Frequently,216,Research & Development
+36,No,Travel_Rarely,1299,Research & Development
+35,No,Travel_Rarely,809,Research & Development
+29,No,Travel_Rarely,153,Research & Development
+31,No,Travel_Rarely,670,Research & Development
+34,No,Travel_Rarely,1346,Research & Development
+28,Yes,Travel_Rarely,103,Research & Development
+29,No,Travel_Rarely,1389,Research & Development
+32,No,Travel_Rarely,334,Research & Development
+22,No,Non-Travel,1123,Research & Development
+53,No,Travel_Rarely,1219,Sales
+38,No,Travel_Rarely,371,Research & Development
+24,No,Non-Travel,673,Research & Development
+36,Yes,Travel_Rarely,1218,Sales
+34,No,Travel_Rarely,419,Research & Development
+21,No,Travel_Rarely,391,Research & Development
+34,Yes,Travel_Rarely,699,Research & Development
+53,No,Travel_Rarely,1282,Research & Development
+32,Yes,Travel_Frequently,1125,Research & Development
+42,No,Travel_Rarely,691,Sales
+44,No,Travel_Rarely,477,Research & Development
+46,No,Travel_Rarely,705,Sales
+33,No,Travel_Rarely,924,Research & Development
+44,No,Travel_Rarely,1459,Research & Development
+30,No,Travel_Rarely,125,Research & Development
+39,Yes,Travel_Rarely,895,Sales
+24,Yes,Travel_Rarely,813,Research & Development
+43,No,Travel_Rarely,1273,Research & Development
+50,Yes,Travel_Rarely,869,Sales
+35,No,Travel_Rarely,890,Sales
+36,No,Travel_Rarely,852,Research & Development
+33,No,Travel_Frequently,1141,Sales
+35,No,Travel_Rarely,464,Research & Development
+27,No,Travel_Rarely,1240,Research & Development
+26,Yes,Travel_Rarely,1357,Research & Development
+27,No,Travel_Frequently,994,Sales
+30,No,Travel_Frequently,721,Research & Development
+41,Yes,Travel_Rarely,1360,Research & Development
+34,No,Non-Travel,1065,Sales
+37,No,Travel_Rarely,408,Research & Development
