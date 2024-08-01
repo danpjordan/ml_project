@@ -5,44 +5,6 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QCo
 import pandas as pd
 import dfhelper
 
-class Column:
-  def __init__(self, is_String, is_Discrete):
-    self.is_String = is_String
-    self.is_Discrete = is_Discrete
-    self.string_to_num = {}
-    self.num_to_string = {}
-  
-  def isString(self):
-    return self.is_String
-  
-  def isDiscrete(self):
-    return self.is_Discrete
-
-  def numToString(self, num):
-    return self.num_to_string[num]
-
-  def stringToNum(self, string):
-    return self.string_to_num[string]
-  
-  # adds a string-num and num-string conversion to the column
-  def addStringNum(self, string, num):
-    self.string_to_num[string] = num
-    self.num_to_string[num] = string
-    
-  def checkString(self, string):
-    return string in self.string_to_num
-  
-  def printDict(self):
-    print("Dictionary:")
-    for key in self.num_to_string:
-      print(key, self.num_to_string[key])
-    
-  def printColumn(self):
-    print("String:", self.isString())
-    print("Discrete:", self.isDiscrete())
-    if self.isString():
-      self.printDict()
-
 class MlProject(QWidget):
     def __init__(self):
         super().__init__()
