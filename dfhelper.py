@@ -29,14 +29,21 @@ class Column:
     return string in self.string_to_num
   
   def printDict(self):
-    print("Dictionary:")
     for key in self.num_to_string:
       print(key, self.num_to_string[key])
+      
+  def getDict(self):
+    out = ""
+    for key in self.num_to_string:
+      out = out + "\n" + str(key) + " " + self.num_to_string[key]
+    return out
+      
     
   def printColumn(self):
     print("String:", self.isString())
     print("Discrete:", self.isDiscrete())
     if self.isString():
+      print("Dictionary:")
       self.printDict()
 
 
@@ -50,6 +57,14 @@ def createColumnDict(df):
     columns[column] = newColumn
 
   return columns
+
+def outputDictionaries(columns):
+    with open('output/dictout.txt', 'w') as f:
+        for column in columns:
+            if columns[column].isString():
+                f.write(f"{column}")
+                f.write(f"{columns[column].getDict()}\n")
+                f.write("\n")
 
 def printColumns(columns):
   for column in columns:
@@ -86,9 +101,8 @@ def main():
   # converts the columns of strings to integers and stores the map in column object
   convertStringToInt(imported_df, columns)
 
-  printColumns(columns)
+  # printColumns(columns)
   
-  imported_df.to_csv(output_name, index=False)
     
 if __name__ == '__main__':
   main()

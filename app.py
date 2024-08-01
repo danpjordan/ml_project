@@ -1,15 +1,16 @@
 import sys
 import csv
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QComboBox, QFileDialog, QLabel, QMessageBox, QCheckBox, QScrollArea, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QComboBox, QFileDialog, QLabel, QMessageBox, QCheckBox, QScrollArea
 import pandas as pd
 import dfhelper
+
+DEBUG_MODE = False
 
 class MlProject(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
-        self.csv_data = []
         self.checkboxes = {}
         self.df = None
         self.selected_df = None
@@ -35,7 +36,6 @@ class MlProject(QWidget):
         self.selectColumnDropdown.currentIndexChanged.connect(self.updateCheckboxes)
         self.layout.addWidget(self.selectColumnDropdown)
 
-        # Add a label to show if the target variable is discrete
         self.targetVariableStatus = QLabel('Status: ', self)
         self.layout.addWidget(self.targetVariableStatus)
 
@@ -74,14 +74,11 @@ class MlProject(QWidget):
             self.fileNameLabel.setText(f'Uploaded File: {os.path.basename(fileName)}')
          
     def loadCSV(self, fileName):
-        with open(fileName, newline='', encoding='utf-8-sig') as csvfile:
-            csvreader = csv.reader(csvfile)
-            self.header = next(csvreader)
-            self.header = [col.lstrip('\ufeff') for col in self.header]
-            self.csv_data = list(csvreader)
-            self.selectColumnDropdown.clear()
-            self.selectColumnDropdown.addItems(self.header)
-            self.loadCheckboxes()
+        self.df = pd.read_csv(fileName)
+        self.header = self.df.columns.tolist()
+        self.selectColumnDropdown.clear()
+        self.selectColumnDropdown.addItems(self.header)
+        self.loadCheckboxes()
 
     def loadCheckboxes(self):
         for i in reversed(range(self.scrollAreaLayout.count())):
@@ -109,29 +106,16 @@ class MlProject(QWidget):
         
         self.updateTargetVariableStatus()
         
-    def get_column_data_from_csv(self, column_name):
-        if column_name in self.header:
-            column_index = self.header.index(column_name)
-            # Extract column data from self.csv_data
-            column_data = [row[column_index] for row in self.csv_data]
-            return column_data
-        else:
-            raise ValueError(f"Column name '{column_name}' not found in CSV header.")
-        
     def updateTargetVariableStatus(self):
-        if self.csv_data:
-            try:
-                data = self.get_column_data_from_csv(self.target_variable)
-                target_series = pd.Series(data)
-
-                # Check if the target variable is discrete
-                is_discrete = len(target_series.unique()) <= dfhelper.DISCRETE_THRESHOLD
-                status = 'Discrete' if is_discrete else 'Continuous'
-            except ValueError:
-                # Handle case where target variable is not found in header
-                status = 'Unknown'
-        else:
-            status = ' '
+        try:
+            data = self.df[self.target_variable].to_list()
+            target_series = pd.Series(data)
+            # Check if the target variable is discrete
+            is_discrete = len(target_series.unique()) <= dfhelper.DISCRETE_THRESHOLD
+            status = 'Discrete' if is_discrete else 'Continuous'
+        except ValueError:
+            # Handle case where target variable is not found in header
+            status = 'Unknown'
         self.targetVariableStatus.setText(f'Status: {status}')
             
     def selectAllCheckboxes(self):
@@ -145,7 +129,6 @@ class MlProject(QWidget):
                 checkbox.setChecked(False)
 
     def submit(self):
-        
         self.targetVariable = self.selectColumnDropdown.currentText()
         if not self.targetVariable:
             QMessageBox.warning(self, "No Selection", "Please select a special column from the dropdown list.")
@@ -156,28 +139,30 @@ class MlProject(QWidget):
         if self.targetVariable not in selected_features:
             selected_features.append(self.targetVariable)
         
-        for col in selected_features:
-            if col != self.targetVariable:
-                print(col)
+        if DEBUG_MODE:
+          for col in selected_features:
+              if col != self.targetVariable:
+                  print(col)
       
         # selects only the selected_features from the csv_data and creates a new dataframe
-        if self.csv_data:
-            self.df = pd.DataFrame(self.csv_data, columns=self.header)
-            self.selected_df = self.df[selected_features].copy()  # Use .copy() to avoid chained assignment
+        if not self.df.empty:
+            self.selected_df = self.df[selected_features].copy()
             
             for col in self.selected_df.columns:
                 self.selected_df[col] = pd.to_numeric(self.selected_df[col], errors='ignore')
-
             
             self.columns = dfhelper.createColumnDict(self.selected_df)
             dfhelper.convertStringToInt(self.selected_df, self.columns)
-            dfhelper.printColumns(self.columns)
+            
+            if DEBUG_MODE : dfhelper.printColumns(self.columns)
 
             # output the selected data as a csv
             self.selected_df.to_csv("output/out.csv", index=False)
-
+            
+            print("Dataframe created")
+            dfhelper.outputDictionaries(self.columns)
         else:
-            print("No csv data found")
+            print("No dataframe found")
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
