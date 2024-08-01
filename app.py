@@ -112,7 +112,7 @@ class MlProject(QWidget):
             self.fileNameLabel.setText(f'Uploaded File: {os.path.basename(fileName)}')
          
     def loadCSV(self, fileName):
-        with open(fileName, newline='') as csvfile:
+        with open(fileName, newline='', encoding='utf-8-sig') as csvfile:
             csvreader = csv.reader(csvfile)
             self.header = next(csvreader)
             self.header = [col.lstrip('\ufeff') for col in self.header]
