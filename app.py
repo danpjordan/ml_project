@@ -144,7 +144,6 @@ class MlProject(QWidget):
               if col != self.targetVariable:
                   print(col)
       
-        # selects only the selected_features from the csv_data and creates a new dataframe
         if not self.df.empty:
             self.selected_df = self.df[selected_features].copy()
             
@@ -167,8 +166,10 @@ class MlProject(QWidget):
             # output the unmodified selected data as a csv
             self.selected_df_unmodifed.to_csv("output/out_unmodifed.csv", index=False)
             
-            print("Dataframe created")
+            # output the dictionaries as a txt
             dfhelper.outputDictionaries(self.columns)
+            
+            print("Dataframe created")
         else:
             print("No dataframe found")
         
