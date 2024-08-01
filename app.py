@@ -13,6 +13,7 @@ class MlProject(QWidget):
         self.initUI()
         self.checkboxes = {}
         self.df = None
+        self.selected_df_unmodifed = None
         self.selected_df = None
         self.targetVariable = None
         self.columns = None
@@ -147,9 +148,11 @@ class MlProject(QWidget):
         # selects only the selected_features from the csv_data and creates a new dataframe
         if not self.df.empty:
             self.selected_df = self.df[selected_features].copy()
+            self.selected_df_unmodifed = self.df[selected_features].copy()
             
             for col in self.selected_df.columns:
                 self.selected_df[col] = pd.to_numeric(self.selected_df[col], errors='ignore')
+                self.selected_df_unmodifed[col] = pd.to_numeric(self.selected_df[col], errors='ignore')
             
             self.columns = dfhelper.createColumnDict(self.selected_df)
             dfhelper.convertStringToInt(self.selected_df, self.columns)
@@ -158,6 +161,9 @@ class MlProject(QWidget):
 
             # output the selected data as a csv
             self.selected_df.to_csv("output/out.csv", index=False)
+            
+            # output the unmodified selected data as a csv
+            self.selected_df_unmodifed.to_csv("output/out_unmodifed.csv", index=False)
             
             print("Dataframe created")
             dfhelper.outputDictionaries(self.columns)
