@@ -1,21 +1,45 @@
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QComboBox, QFileDialog, QLabel, QMessageBox, QCheckBox, QScrollArea
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget,
+    QVBoxLayout,
+    QPushButton,
+    QComboBox,
+    QFileDialog,
+    QLabel,
+    QMessageBox,
+    QCheckBox,
+    QScrollArea,
+    QLineEdit,
+    QFormLayout,
+    QSpinBox,
+)
+
 import pandas as pd
 import dfhelper
+import ml_source as ml
 
 DEBUG_MODE = False
 
 class MlProject(QWidget):
     def __init__(self):
         super().__init__()
-        self.initUI()
         self.checkboxes = {}
         self.df = None
         self.selected_df_unmodifed = None
         self.selected_df = None
         self.targetVariable = None
         self.columns = None
+        self.model_eval = None
+        self.params = {
+            'impute': True,
+            'remove_invariants': True,
+            'handle_outliers': True,
+            'vif_threshold': 5,
+            'encoding': 'onehot'
+        }
+        self.initUI()
         
     def initUI(self):
         self.setWindowTitle('ML Project')
@@ -58,12 +82,46 @@ class MlProject(QWidget):
         self.deselectAllButton.clicked.connect(self.deselectAllCheckboxes)
         self.layout.addWidget(self.deselectAllButton)
 
+        # Add preprocessing parameters section
+        self.paramsLabel = QLabel('Preprocessing Parameters:', self)
+        self.layout.addWidget(self.paramsLabel)
+
+        self.paramsLayout = QFormLayout()
+
+        self.imputeCheckbox = QCheckBox('Impute Missing Values')
+        self.imputeCheckbox.setChecked(self.params['impute'])
+        self.imputeCheckbox.stateChanged.connect(self.updateParams)
+        self.paramsLayout.addRow('Impute:', self.imputeCheckbox)
+
+        self.removeInvariantsCheckbox = QCheckBox('Remove Invariant Features')
+        self.removeInvariantsCheckbox.setChecked(self.params['remove_invariants'])
+        self.removeInvariantsCheckbox.stateChanged.connect(self.updateParams)
+        self.paramsLayout.addRow('Remove Invariants:', self.removeInvariantsCheckbox)
+
+        self.handleOutliersCheckbox = QCheckBox('Handle Outliers')
+        self.handleOutliersCheckbox.setChecked(self.params['handle_outliers'])
+        self.handleOutliersCheckbox.stateChanged.connect(self.updateParams)
+        self.paramsLayout.addRow('Handle Outliers:', self.handleOutliersCheckbox)
+
+        self.vifThresholdSpinBox = QSpinBox()
+        self.vifThresholdSpinBox.setValue(self.params['vif_threshold'])
+        self.vifThresholdSpinBox.valueChanged.connect(self.updateParams)
+        self.paramsLayout.addRow('VIF Threshold:', self.vifThresholdSpinBox)
+
+        self.encodingComboBox = QComboBox()
+        self.encodingComboBox.addItems(['onehot', 'label'])
+        self.encodingComboBox.setCurrentText(self.params['encoding'])
+        self.encodingComboBox.currentTextChanged.connect(self.updateParams)
+        self.paramsLayout.addRow('Encoding:', self.encodingComboBox)
+
+        self.layout.addLayout(self.paramsLayout)
+
         self.submitButton = QPushButton('Submit', self)
         self.submitButton.clicked.connect(self.submit)
         self.layout.addWidget(self.submitButton)
 
         self.setLayout(self.layout)
-        self.setGeometry(300, 300, 400, 400)
+        self.setGeometry(300, 300, 400, 600)
 
     def uploadFile(self):
         options = QFileDialog.Options()
@@ -128,6 +186,20 @@ class MlProject(QWidget):
             if checkbox.isEnabled():
                 checkbox.setChecked(False)
 
+    def perform_machine_learning(self):
+        df, _ = ml.pre_process(df=self.selected_df_unmodifed, proj=self)
+        support = ml.training_and_evaluation(df=df, proj=self)
+        support['params'] = self.params
+        self.model_eval = ml.ModelEvaluationApp(support)
+        self.model_eval.show()
+
+    def updateParams(self):
+        self.params['impute'] = self.imputeCheckbox.isChecked()
+        self.params['remove_invariants'] = self.removeInvariantsCheckbox.isChecked()
+        self.params['handle_outliers'] = self.handleOutliersCheckbox.isChecked()
+        self.params['vif_threshold'] = self.vifThresholdSpinBox.value()
+        self.params['encoding'] = self.encodingComboBox.currentText()
+
     def submit(self):
         self.targetVariable = self.selectColumnDropdown.currentText()
         if not self.targetVariable:
@@ -172,6 +244,8 @@ class MlProject(QWidget):
             print("Dataframe created")
         else:
             print("No dataframe found")
+
+        self.perform_machine_learning()
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)

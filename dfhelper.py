@@ -52,7 +52,7 @@ def createColumnDict(df):
   columns = {}
   for column in df:
     isString = df[column].dtype == 'object'
-    isDiscrete = df[column].nunique() <= DISCRETE_THRESHOLD
+    isDiscrete = df[column].nunique() <= DISCRETE_THRESHOLD or isString
     newColumn = Column(isString, isDiscrete)
     columns[column] = newColumn
 
