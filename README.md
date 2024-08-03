@@ -1,7 +1,9 @@
-# ml_project
+# Machine Learning Sandbox App
 
-This project does something cool (just you wait)
-
-1) Create enviroment
-2) pip install -r requirements.txt
-3) python3 app.py
+1) Create enviroment with:
+   - conda create -n ml_app python=3.9
+   - conda activate ml_app
+3) Install requirements with:
+   - pip install -r requirements.txt
+5) Run application with:
+   - python3 app.py or python app.py
