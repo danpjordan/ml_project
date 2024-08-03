@@ -28,7 +28,7 @@ from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge, La
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QSplitter, QGroupBox,
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QGridLayout, QSplitter, QGroupBox,
     QScrollArea, QLabel, QGraphicsView, QGraphicsScene, QGraphicsProxyWidget
 )
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -36,7 +36,6 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import seaborn as sns
 from PyQt5.QtGui import QPainter
-
 
 def impute_missing_vals(input_df, proj: MlProject = None):
     df = input_df.copy()
@@ -301,7 +300,7 @@ class ModelEvaluationApp(QMainWindow):
     def __init__(self, support):
         super().__init__()
         self.setWindowTitle("Model Evaluation Results")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1000, 800)
 
         # Create main widget and layout
         main_widget = QWidget()
@@ -311,10 +310,15 @@ class ModelEvaluationApp(QMainWindow):
         vertical_splitter = QSplitter(Qt.Vertical)
         sub_window_heights = [200, 100, 300]  # Ratios 2:1:3 for the top three windows
 
+        sub_horizontal_splitter = QSplitter(Qt.Horizontal)
+        sub_horizontal_splitter.addWidget(self.create_methods_subwindow())
+        sub_horizontal_splitter.addWidget(self.create_results_subwindow(results_df=support['results_df'], best_model_idx=support['best_model_idx']))
+
         # Add sub-windows with content from ModelEvaluationApp
-        vertical_splitter.addWidget(self.create_methods_subwindow())
+        # vertical_splitter.addWidget(self.create_methods_subwindow())
+        vertical_splitter.addWidget(sub_horizontal_splitter)
         vertical_splitter.addWidget(self.create_pipeline_subwindow(params=support['params']))
-        vertical_splitter.addWidget(self.create_results_subwindow(results_df=support['results_df'], best_model_idx=support['best_model_idx']))
+        # vertical_splitter.addWidget(self.create_results_subwindow(results_df=support['results_df'], best_model_idx=support['best_model_idx']))
 
         # Set initial sizes of the three vertical windows
         vertical_splitter.setSizes(sub_window_heights)
@@ -340,10 +344,11 @@ class ModelEvaluationApp(QMainWindow):
         # Set main widget as central widget
         self.setCentralWidget(main_widget)
 
-    def create_scrollable_subwindow(self, title, content_widget):
+    def create_scrollable_subwindow(self, title, content_widget, init_zoom_out_factor=1):
         group_box = QGroupBox(title)
         layout = QVBoxLayout(group_box)
         zoom_view = ZoomableView(content_widget)
+        zoom_view.scale(init_zoom_out_factor, init_zoom_out_factor)
         layout.addWidget(zoom_view)
         return group_box
 
@@ -363,69 +368,83 @@ class ModelEvaluationApp(QMainWindow):
         methods_label.setStyleSheet("font-size: 10pt;")
         methods_layout.addWidget(methods_label)
 
+        # return methods_widget
         return self.create_scrollable_subwindow("Methods Used", methods_widget)
 
     def create_pipeline_subwindow(self, params):
         pipeline_widget = QWidget()
         pipeline_layout = QVBoxLayout(pipeline_widget)
 
-        pipeline_fig, ax = plt.subplots(figsize=(12, 2))
+        # Create the figure and axis
+        pipeline_fig, ax = plt.subplots(figsize=(10.5, 1))
         ax.set_xlim(0, 10)
         ax.set_ylim(0, 1)
 
+        # Define the stages
         stages = ['Data', 'Impute Missing', 'Remove Invariants',
-                  'Handle Outliers', 'Reduce Colinearity', 'Encoding', 'Training', 'Evaluation']
-        
-        if not params['impute']:
-            stages.remove('Impute Missing')
-        if not params['remove_invariants']:
-            stages.remove('Remove Invariants')
-        if not params['handle_outliers']:
-            stages.remove('Handle Outliers')
-        if params['vif_threshold'] <= 0:
-            stages.remove('Reduce Colinearity')
+                'Handle Outliers', 'Reduce Colinearity', 'Encoding', 'Training', 'Evaluation']
 
-        x_pos = np.linspace(0.5, 9.5, len(stages))
-
-        # Store box centers and widths
+        # Store box information
         box_info = []
 
-        # Add text boxes
-        for i, stage in enumerate(stages):
-            # Add the text box
-            text = ax.text(x_pos[i], 0.5, stage, ha='center', va='center', fontsize=9,
-                           bbox=dict(facecolor='skyblue', alpha=0.5, edgecolor='blue'))
-
-            # Get bounding box of the text in display coordinates
+        # Add text boxes to calculate their widths
+        for stage in stages:
+            text = ax.text(0, 0.5, stage, ha='center', va='center', fontsize=9,
+                        bbox=dict(facecolor='skyblue', alpha=0.5, edgecolor='blue'))
+            # Get the bounding box of the text in display coordinates
             bbox = text.get_window_extent(renderer=pipeline_fig.canvas.get_renderer())
-
             # Transform bounding box to data coordinates
             bbox_data = bbox.transformed(ax.transData.inverted())
-            box_center = x_pos[i]
-            box_width = bbox_data.width
+            box_info.append(bbox_data.width)
+            text.remove()  # Remove the temporary text
 
-            # Store center and width
-            box_info.append((box_center, box_width))
+        # Calculate total width and spacing
+        total_text_width = sum(box_info)
+        desired_gap = 0.25
+        total_gap_width = desired_gap * (len(stages) - 1)
+        total_width = total_text_width + total_gap_width
+
+        # Calculate starting position
+        x_start = (ax.get_xlim()[1] - total_width) / 2
+
+        # Add the text boxes at calculated positions
+        current_x = x_start
+        for i, (stage, box_width) in enumerate(zip(stages, box_info)):
+            # Add the text box at the calculated position
+            text = ax.text(current_x + box_width / 2, 0.5, stage, ha='center', va='center', fontsize=9,
+                        bbox=dict(facecolor='skyblue', alpha=0.5, edgecolor='blue'))
+            # Update current position for next box
+            current_x += box_width + desired_gap
 
         # Add arrows between boxes
-        for i in range(len(box_info) - 1):
-            current_center, current_width = box_info[i]
-            next_center, next_width = box_info[i + 1]
+        current_x = x_start
+        for i in range(len(stages) - 1):
+            current_width = box_info[i]
+            next_width = box_info[i + 1]
+
+            # Calculate arrow start and end positions
+            arrow_start = current_x + current_width
+            arrow_end = arrow_start + desired_gap
 
             ax.annotate(
                 '',
-                xy=(next_center - next_width / 2, 0.5),
-                xytext=(current_center + current_width / 2, 0.5),
+                xy=(arrow_end, 0.5),
+                xytext=(arrow_start, 0.5),
                 arrowprops=dict(arrowstyle='->', lw=1)
             )
 
+            current_x += current_width + desired_gap
+
+        # Hide axis
         ax.set_axis_off()
         plt.tight_layout()
 
         pipeline_canvas = FigureCanvas(pipeline_fig)
-        pipeline_canvas.setFixedHeight(200)
+        pipeline_canvas.setFixedHeight(75)
+        pipeline_canvas.setFixedWidth(1000)        
         pipeline_layout.addWidget(pipeline_canvas)
-
+        
+        # return pipeline_widget
         return self.create_scrollable_subwindow("Pipeline Diagram", pipeline_widget)
 
     def create_results_subwindow(self, results_df, best_model_idx):
@@ -445,6 +464,7 @@ class ModelEvaluationApp(QMainWindow):
         results_text.setStyleSheet("font-size: 10pt;")
         results_layout.addWidget(results_text)
 
+        # return results_widget
         return self.create_scrollable_subwindow("Model Evaluation Results", results_widget)
 
     def create_importance_subwindow(self, perm_importance_dict):
@@ -452,7 +472,7 @@ class ModelEvaluationApp(QMainWindow):
         importance_layout = QVBoxLayout(importance_widget)
 
         for model_name, importance_df in perm_importance_dict.items():
-            fig, ax = plt.subplots(figsize=(12, 8))  # Increased figure size for better visibility
+            fig, ax = plt.subplots(figsize=(6, 4))  # Increased figure size for better visibility
             sns.barplot(x='importance', y='feature', data=importance_df, ax=ax)
             ax.set_title(f'Permutation Importance for {model_name}')
             ax.set_xlabel('Importance')
@@ -461,18 +481,18 @@ class ModelEvaluationApp(QMainWindow):
 
             # Use a FigureCanvas for matplotlib figure
             canvas = FigureCanvas(fig)
-            canvas.setMinimumHeight(800)  # Set a minimum height for better scrolling experience
-            canvas.setMinimumWidth(1200)  # Set a minimum width for better scrolling experience
+            canvas.setMinimumHeight(400)  # Set a minimum height for better scrolling experience
+            canvas.setMinimumWidth(600)  # Set a minimum width for better scrolling experience
             importance_layout.addWidget(canvas)
 
-        return self.create_scrollable_subwindow("Permutation Importance", importance_widget)
+        return self.create_scrollable_subwindow("Permutation Importance", importance_widget, init_zoom_out_factor=0.7)
 
     def create_confusion_matrix_subwindow(self, confusion_matrices):
         cm_widget = QWidget()
         cm_layout = QVBoxLayout(cm_widget)
 
         for model_name, cm in confusion_matrices.items():
-            fig, ax = plt.subplots(figsize=(12, 8))  # Increased figure size for better visibility
+            fig, ax = plt.subplots(figsize=(6, 4))  # Increased figure size for better visibility
             sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
             ax.set_title(f'Confusion Matrix for {model_name}')
             ax.set_xlabel('Predicted')
@@ -481,8 +501,31 @@ class ModelEvaluationApp(QMainWindow):
 
             # Use a FigureCanvas for matplotlib figure
             canvas = FigureCanvas(fig)
-            canvas.setMinimumHeight(800)  # Set a minimum height for better scrolling experience
-            canvas.setMinimumWidth(1200)  # Set a minimum width for better scrolling experience
+            canvas.setMinimumHeight(400)  # Set a minimum height for better scrolling experience
+            canvas.setMinimumWidth(600)  # Set a minimum width for better scrolling experience
             cm_layout.addWidget(canvas)
 
-        return self.create_scrollable_subwindow("Confusion Matrices", cm_widget)
+        return self.create_scrollable_subwindow("Confusion Matrices", cm_widget, init_zoom_out_factor=0.7)
+
+if __name__ == '__main__':
+    import dfhelper
+
+    app = QApplication(sys.argv)
+    file = "data/Employee-Attrition.csv"
+    df = pd.read_csv(file)
+    proj = MlProject()
+    proj.loadCSV("data/Employee-Attrition.csv")
+    proj.columns = dfhelper.createColumnDict(df)
+    proj.targetVariable = 'Attrition'
+    df, _ = pre_process(df=df, proj=proj)
+    support = training_and_evaluation(df=df, proj=proj)
+    support['params'] = {
+            'impute': True,
+            'remove_invariants': True,
+            'handle_outliers': True,
+            'vif_threshold': 5,
+            'encoding': 'onehot'
+        }
+    model_eval = ModelEvaluationApp(support)
+    model_eval.show()
+    sys.exit(app.exec_())
