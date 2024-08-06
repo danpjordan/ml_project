@@ -35,5 +35,16 @@ Submit:
 
 5. Click the **"Submit"** button to preprocess the data and perform machine learning model evaluation. The results will be displayed, and the processed data will be saved to the output directory.
 
+## Data
+This repository includes some open-source CSV files located in the data folder. These files can be used to test the application.
+
+**Included Files:**
+1. **data/Employee-Attrition.csv:** Pulled from [IBM HR Analytics Employee Attrition & Performance](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)
+
+2. **data/loan_approval_dataset.csv:** Pulled from [Loan Approval Prediction Dataset](https://www.kaggle.com/datasets/architsharma01/loan-approval-prediction-dataset)
+
+Usage of Data Files
+You can use these data files by selecting them when uploading a CSV file in the application. They are provided for testing and demonstration purposes.
+
 ## License
 This project is licensed under the [MIT] License.
