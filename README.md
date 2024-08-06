@@ -3,7 +3,7 @@
 ## Overview
 The Machine Learning Sandbox App is designed to help users process CSV data and perform machine learning tasks with ease. The app allows users to upload CSV files, select target variable and feature from the remaining columns, configure preprocessing parameters, and evaluate models.
 
-Co-Author: Malik Zekri (https://github.com/TheShadowTiki)
+Co-Author: [Malik Zekri](https://github.com/TheShadowTiki)
 
 ## Installation
 
