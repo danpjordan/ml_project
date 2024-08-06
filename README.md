@@ -51,7 +51,7 @@ This repository includes some open-source CSV files located in the data folder. 
 
 3. **data/student_performance_data.csv:** Pulled from [📚 Student Performance Dataset 📚](https://www.kaggle.com/datasets/waqi786/student-performance-dataset)
 
-Usage of Data Files
+**Usage of Data Files:**
 You can use these data files by selecting them when uploading a CSV file in the application. They are provided for testing and demonstration purposes.
 
 ## License
