@@ -35,6 +35,12 @@ Submit:
 
 5. Click the **"Submit"** button to preprocess the data and perform machine learning model evaluation. The results will be displayed, and the processed data will be saved to the output directory.
 
+## Application Interface
+<div align="center">
+    <img src="https://github.com/user-attachments/assets/fbeb28b2-f212-4276-b3e2-8ea8707ccc0b" width="250" alt="Screenshot of the first application window">
+    <img src="https://github.com/user-attachments/assets/9882af24-21da-49dd-9d16-2f35f653e6fd" width="700" alt="Screenshot of the evaluation results">
+</div>
+
 ## Data
 This repository includes some open-source CSV files located in the data folder. These files can be used to test the application.
 
